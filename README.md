@@ -177,7 +177,7 @@ where **N** is the number of matched pairs and **𝕀(·)** is the indicator fun
 
 Then:
 
-![SIA_equation](https://latex.codecogs.com/svg.latex?\mathrm{SIA}=\frac{1}{N}\sum_{i=1}^{N}\mathbb{I}(\mathrm{pos}(\hat{s}_p^{*})\in\mathrm{POS}(s_p^{gt}))
+![SIA_equation](https://latex.codecogs.com/svg.latex?\mathrm{SIA}=\frac{1}{N}\sum_{i=1}^{N}\mathbb{I}(\mathrm{pos}(\hat{s}_p^{*})\in\mathrm{POS}(s_p^{gt})))
 
 ---
 
@@ -191,7 +191,7 @@ We report two variants that compare the predicted rationale **\hat{R}** with the
 
 Let **E(·)** be a text-embedding function and **cos(·,·)** the cosine similarity. Then:
 
-![RC_embed](https://latex.codecogs.com/svg.latex?\mathrm{RC}_{\text{embed}}=\frac{1}{N}\sum_{i=1}^{N}\cos(E(R^{gt}),E(\hat{R}))
+![RC_embed](https://latex.codecogs.com/svg.latex?\mathrm{RC}_{\text{embed}}=\frac{1}{N}\sum_{i=1}^{N}\cos(E(R^{gt}),E(\hat{R})))
 
 ---
 
