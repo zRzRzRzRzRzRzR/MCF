@@ -114,27 +114,27 @@ bert_model = "/gpfs/work/aac/yulongli19/.cache/modelscope/hub/models/AI-ModelSco
     ```
 
 + using with `audio_convert.py` for audio extraction:
-  
+
   ```
     cd main
     python audio_convert.py --input_dir {mp4} --output_dir {mp3}
     ```
-  
+
 + Once all three files (mp3, mp4, txt) are ready, first perform audio feature extraction:
 
     ```
   python audio.py --audio_path --model_path --output_path
     ```
-  
+
 + Then extract video features:
-  
+
   ```shell
     ce convert_text
   python video.py --root_dir {data} --output_dir --modal {audio or video_audio}
     ```
-  
+
 + Concatenate the extracted content:
-  
+
     ```shell
   python combined.py --audio_dir {audio} --input_dir {video_info} --output_dir {output}
   ```
@@ -151,10 +151,12 @@ python get_emo_sw.py --input_dir --other_text {combined_text} --output_dir --con
 
 ### Emotion State Accuracy (SA)
 
-SA measures whether the predicted emotional state matches the ground-truth emotional state for each matched causal chain pair **(c<sub>i</sub><sup>gt</sup>, ĉ<sub>j</sub>)**.
+SA measures whether the predicted emotional state matches the ground-truth emotional state for each matched causal chain
+pair **(c<sub>i</sub><sup>gt</sup>, ĉ<sub>j</sub>)**.
 
-- **c<sub>i</sub><sup>gt</sup> = (s<sub>p</sub><sup>gt</sup>, u<sub>q</sub><sup>gt</sup>, e<sub>q</sub><sup>gt</sup>)** be the ground-truth chain,  
-- **ĉ<sub>j</sub> = (ŝ<sub>p</sub>, û<sub>q</sub>, ê<sub>q</sub>)** be a predicted chain,  
+- **c<sub>i</sub><sup>gt</sup> = (s<sub>p</sub><sup>gt</sup>, u<sub>q</sub><sup>gt</sup>, e<sub>q</sub><sup>gt</sup>)**
+  be the ground-truth chain,
+- **ĉ<sub>j</sub> = (ŝ<sub>p</sub>, û<sub>q</sub>, ê<sub>q</sub>)** be a predicted chain,
 - **ê<sub>q</sub><sup>*</sup>** be the emotional state from the **best-matching** predicted chain:
 
 ![SA_match](https://latex.codecogs.com/svg.latex?\hat{e}_q^{*}=\arg\max_{\hat{c}_j}\mathrm{Similarity}(c_i^{gt},\hat{c}_j))
@@ -169,23 +171,22 @@ where **N** is the number of matched pairs and **𝕀(·)** is the indicator fun
 
 ### Source ID Accuracy (SIA)
 
-**Definition.** SIA checks whether the **source event position** in the best-matching predicted chain aligns with the ground-truth source event position.  
+**Definition.** SIA checks whether the **source event position** in the best-matching predicted chain aligns with the
+ground-truth source event position.
 
-- **POS(s<sub>p</sub><sup>gt</sup>)** = set of valid position indices for the ground-truth source event  
-- **pos(·)** = extract the utterance index from a source event  
-- **ŝ<sub>p</sub><sup>*</sup>** = source event from the best-matching predicted chain (as defined via the same matching used for SA)
+- **POS(s<sub>p</sub><sup>gt</sup>)** = set of valid position indices for the ground-truth source event
+- **pos(·)** = extract the utterance index from a source event
+- **ŝ<sub>p</sub><sup>*</sup>** = source event from the best-matching predicted chain (as defined via the same matching
+  used for SA)
 
 Then:
 
 ![SIA_equation](https://latex.codecogs.com/svg.latex?\mathrm{SIA}=\frac{1}{N}\sum_{i=1}^{N}\mathbb{I}(\mathrm{pos}(\hat{s}_p^{*})\in\mathrm{POS}(s_p^{gt})))
 
----
-
 ### Reason Consistency (RC)
 
-We report two variants that compare the predicted rationale **\hat{R}** with the ground-truth rationale **R<sup>gt</sup>**.
-
----
+We report two variants that compare the predicted rationale **\hat{R}** with the ground-truth rationale **R<sup>gt</sup>
+**.
 
 #### Embedding-based Reason Consistency
 
@@ -193,15 +194,12 @@ Let **E(·)** be a text-embedding function and **cos(·,·)** the cosine similar
 
 ![RC_embed](https://latex.codecogs.com/svg.latex?\mathrm{RC}_{\text{embed}}=\frac{1}{N}\sum_{i=1}^{N}\cos(E(R^{gt}),E(\hat{R})))
 
----
-
 #### LLM-based Reason Consistency
 
-Let **I<sub>LLM</sub>(R<sup>gt</sup>, \hat{R}) ∈ {0,1}** be a binary judgment from a large language model indicating semantic consistency. Then:
+Let **I<sub>LLM</sub>(R<sup>gt</sup>, \hat{R}) ∈ {0,1}** be a binary judgment from a large language model indicating
+semantic consistency. Then:
 
 ![RC_LLM](https://latex.codecogs.com/svg.latex?\mathrm{RC}_{\text{LLM}}=\frac{1}{N}\sum_{i=1}^{N}\mathbb{I}_{\text{LLM}}(R^{gt},\hat{R}))
-
----
 
 ### Run the Benchmark
 
