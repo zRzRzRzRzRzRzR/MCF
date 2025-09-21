@@ -145,64 +145,66 @@ bert_model = "/gpfs/work/aac/yulongli19/.cache/modelscope/hub/models/AI-ModelSco
 python get_emo_sw.py --input_dir --other_text {combined_text} --output_dir --config_path --llm_model --batch --window_sizes --step_sizes
 ```
 
-## Evaluation Metrics for Multimodal Emotional Causal Reasoning
+# Evaluation Metrics for Multimodal Emotional Causal Reasoning
+
+---
 
 ### Emotion State Accuracy (SA)
 
-SA measures whether the predicted emotional state matches the ground-truth emotional state for each matched causal chain pair \((c_i^{gt}, \hat{c}_j)\).
+SA measures whether the predicted emotional state matches the ground-truth emotional state for each matched causal chain pair **(c<sub>i</sub><sup>gt</sup>, ĉ<sub>j</sub>)**.
 
-- \(c_i^{gt} = (s_p^{gt}, u_q^{gt}, e_q^{gt})\) be the ground-truth chain,
-- \(\hat{c}_j = (\hat{s}_p, \hat{u}_q, \hat{e}_q)\) be a predicted chain,
-- \(\hat{e}_q^{*}\) be the emotional state from the **best-matching** predicted chain:
+- **c<sub>i</sub><sup>gt</sup> = (s<sub>p</sub><sup>gt</sup>, u<sub>q</sub><sup>gt</sup>, e<sub>q</sub><sup>gt</sup>)** be the ground-truth chain,  
+- **ĉ<sub>j</sub> = (ŝ<sub>p</sub>, û<sub>q</sub>, ê<sub>q</sub>)** be a predicted chain,  
+- **ê<sub>q</sub><sup>*</sup>** be the emotional state from the **best-matching** predicted chain:
 
-$$
-\hat{e}_q^{*} \;=\; \arg\max_{\hat{c}_j}\; \mathrm{Similarity}\!\left(c_i^{gt}, \hat{c}_j\right).
-$$
+![SA_match](https://latex.codecogs.com/svg.latex?\hat{e}_q^{*}=\arg\max_{\hat{c}_j}\mathrm{Similarity}(c_i^{gt},\hat{c}_j))
 
-Then SA is
+Then SA is:
 
-$$
-\mathrm{SA} \;=\; \frac{1}{N}\sum_{i=1}^{N} \mathbb{I}\!\left(e_q^{gt} \;=\; \hat{e}_q^{*}\right),
-$$
+![SA_equation](https://latex.codecogs.com/svg.latex?\mathrm{SA}=\frac{1}{N}\sum_{i=1}^{N}\mathbb{I}(e_q^{gt}=\hat{e}_q^{*}))
 
-where \(N\) is the number of matched pairs and \(\mathbb{I}(\cdot)\) is the indicator function.
+where **N** is the number of matched pairs and **𝕀(·)** is the indicator function.
 
 ---
 
 ### Source ID Accuracy (SIA)
 
-**Definition.** SIA checks whether the **source event position** in the best-matching predicted chain aligns with the ground-truth source event position. Let
-- \(\mathrm{POS}(s_p^{gt})\) be the set of valid position indices for the ground-truth source event,
-- \(\mathrm{pos}(\cdot)\) extract the utterance index from a source event,
-- \(\hat{s}_p^{*}\) be the source event from the best-matching predicted chain (as defined via the same matching used for SA).
+**Definition.** SIA checks whether the **source event position** in the best-matching predicted chain aligns with the ground-truth source event position.  
 
-Then
-$$
-\mathrm{SIA} \;=\; \frac{1}{N}\sum_{i=1}^{N} \mathbb{I}\!\left(\mathrm{pos}\!\left(\hat{s}_p^{*}\right) \in \mathrm{POS}\!\left(s_p^{gt}\right)\right).
-$$
+- **POS(s<sub>p</sub><sup>gt</sup>)** = set of valid position indices for the ground-truth source event  
+- **pos(·)** = extract the utterance index from a source event  
+- **ŝ<sub>p</sub><sup>*</sup>** = source event from the best-matching predicted chain (as defined via the same matching used for SA)
+
+Then:
+
+![SIA_equation](https://latex.codecogs.com/svg.latex?\mathrm{SIA}=\frac{1}{N}\sum_{i=1}^{N}\mathbb{I}(\mathrm{pos}(\hat{s}_p^{*})\in\mathrm{POS}(s_p^{gt}))
 
 ---
 
 ### Reason Consistency (RC)
 
-We report two variants that compare the predicted rationale \(\hat{R}\) with the ground-truth rationale \(R^{gt}\).
+We report two variants that compare the predicted rationale **\hat{R}** with the ground-truth rationale **R<sup>gt</sup>**.
 
-### Embedding-based Reason Consistency
+---
 
-Let \(E(\cdot)\) be a text-embedding function and \(\cos(\cdot,\cdot)\) the cosine similarity. Then
-$$
-\mathrm{RC}_{\text{embed}} \;=\; \frac{1}{N}\sum_{i=1}^{N} \cos\!\Big(E(R^{gt}),\, E(\hat{R})\Big).
-$$
+#### Embedding-based Reason Consistency
 
-### LLM-based Reason Consistency
+Let **E(·)** be a text-embedding function and **cos(·,·)** the cosine similarity. Then:
 
-Let \(\mathbb{I}_{\text{LLM}}(R^{gt}, \hat{R}) \in \{0,1\}\) be a binary judgment from a large language model indicating semantic consistency. Then
-$$
-\mathrm{RC}_{\text{LLM}} \;=\; \frac{1}{N}\sum_{i=1}^{N} \mathbb{I}_{\text{LLM}}\!\left(R^{gt}, \hat{R}\right).
-$$
+![RC_embed](https://latex.codecogs.com/svg.latex?\mathrm{RC}_{\text{embed}}=\frac{1}{N}\sum_{i=1}^{N}\cos(E(R^{gt}),E(\hat{R}))
 
-To get the benchmark, run as:
+---
 
-```shell
+#### LLM-based Reason Consistency
+
+Let **I<sub>LLM</sub>(R<sup>gt</sup>, \hat{R}) ∈ {0,1}** be a binary judgment from a large language model indicating semantic consistency. Then:
+
+![RC_LLM](https://latex.codecogs.com/svg.latex?\mathrm{RC}_{\text{LLM}}=\frac{1}{N}\sum_{i=1}^{N}\mathbb{I}_{\text{LLM}}(R^{gt},\hat{R}))
+
+---
+
+### Run the Benchmark
+
+```bash
 python get_emo_score.py --gt_dir --input_dir --output_dir --batch --event_threshold
 ```
