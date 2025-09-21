@@ -1,0 +1,23 @@
+llm_config:
+  zhipu:
+    model: glm-4-plus
+    base_url: https://open.bigmodel.cn/api/paas/v4
+    api_key:
+  deepseek:
+    model: deepseek-chat
+    base_url: https://api.deepseek.com
+    api_key:
+  qwen2.5-72b:
+    model: { your vllm config }
+    base_url: http://localhost:8000/v1
+    api_key: EMPTY
+
+embed_config:
+  zhipu:
+    model: embedding-3
+    base_url: https://open.bigmodel.cn/api/paas/v4
+    api_key:
+  bge:
+    model: {your vllm config}
+    base_url: http://localhost:8001/v1
+    api_key:  EMPTY
