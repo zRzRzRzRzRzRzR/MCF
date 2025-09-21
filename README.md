@@ -147,8 +147,6 @@ python get_emo_sw.py --input_dir --other_text {combined_text} --output_dir --con
 
 # Evaluation Metrics for Multimodal Emotional Causal Reasoning
 
----
-
 ### Emotion State Accuracy (SA)
 
 SA measures whether the predicted emotional state matches the ground-truth emotional state for each matched causal chain
@@ -166,8 +164,6 @@ Then SA is:
 ![SA_equation](https://latex.codecogs.com/svg.latex?\mathrm{SA}=\frac{1}{N}\sum_{i=1}^{N}\mathbb{I}(e_q^{gt}=\hat{e}_q^{*}))
 
 where **N** is the number of matched pairs and **𝕀(·)** is the indicator function.
-
----
 
 ### Source ID Accuracy (SIA)
 
