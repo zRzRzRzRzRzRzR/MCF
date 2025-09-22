@@ -9,21 +9,22 @@ import yaml
 
 def load_yaml_config(config_path, api_name, config_type="llm_config"):
     """
-    从 YAML 配置文件中加载指定类型的 API 配置信息，并返回一个包含所有配置的字典。
-    :param config_path: 配置文件路径
-    :param api_name: API 的名称
-    :param config_type: 配置类型（默认是 'llm_config'，也可以是 'embed_config'）
-    :return: 包含模型配置的字典
+    Load the API configuration information of the specified type from the YAML configuration file
+    and return a dictionary containing all the configurations.
+    :param config_path: configuration file、 patj
+    :param api_name: API name
+    :param config_type: Configuration type (default is 'llm_config', it can also be 'embed_config')
+    :return: Configuration type (default is 'llm_config', it can also be 'embed_config')
     """
     with open(config_path, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)
 
     if config_type not in config:
-        raise ValueError(f"配置文件中未找到 '{config_type}' 配置")
+        raise ValueError(f"It was not found in the configuration file '{config_type}'")
 
     api_config = config[config_type].get(api_name)
     if not api_config:
-        raise ValueError(f"未找到 '{api_name}' 的配置")
+        raise ValueError(f"not found '{api_name}' configuration")
 
     return {"model": api_config["model"], "base_url": api_config["base_url"], "api_key": api_config["api_key"]}
 
