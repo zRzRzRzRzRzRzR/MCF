@@ -1,14 +1,21 @@
-import copy
-import os
-import json
 import argparse
+import concurrent.futures
+import copy
+import json
+import os
 import re
 from collections import defaultdict
 
 from mpmath import floor
 from tqdm import tqdm
-import concurrent.futures
-from utils import call_large_model, parse_json_response, load_yaml_config, merge_similar_emotions_with_llm
+
+from utils import (
+    call_large_model,
+    load_yaml_config,
+    merge_similar_emotions_with_llm,
+    parse_json_response,
+)
+
 
 def format_chat_history_for_llm(chat_data):
     formatted_chat = []
@@ -24,18 +31,35 @@ def format_chat_history_for_llm(chat_data):
                     f'{{"target": "{t["target"]}", "aspect": "{t["aspect"]}", '
                     f'"opinion": "{t["opinion"]}", "sentiment": "{t["sentiment"]}", "rationale": "{t["rationale"]}"}}'
                 )
-            tuples_str = "[\n  " + ",\n  ".join(formatted_tuples) + "\n]" if formatted_tuples else "[]"
+            tuples_str = (
+                "[\n  " + ",\n  ".join(formatted_tuples) + "\n]"
+                if formatted_tuples
+                else "[]"
+            )
         except:
             tuples_str = "[]"
         if holder and sentence:
-            formatted_chat.append(f'({idx}) "{holder}": "{sentence}"\n五元组: {tuples_str}')
+            formatted_chat.append(
+                f'({idx}) "{holder}": "{sentence}"\n五元组: {tuples_str}'
+            )
 
     return "[\n" + ",\n".join(formatted_chat) + "\n]"
 
 
-def segment_events_by_topic_with_sliding_window(dialogues, api_key, base_url, model_name, window_size=10, step_size=8, speaker_timestamps=None,other_text=None):
+def segment_events_by_topic_with_sliding_window(
+    dialogues,
+    api_key,
+    base_url,
+    model_name,
+    window_size=10,
+    step_size=8,
+    speaker_timestamps=None,
+    other_text=None,
+):
     total_sentences = len(dialogues)
-    print(f"共计{total_sentences}个句子，切分成{floor(total_sentences // step_size) + 1}个窗口进行滑动")
+    print(
+        f"共计{total_sentences}个句子，切分成{floor(total_sentences // step_size) + 1}个窗口进行滑动"
+    )
     event_pool = defaultdict(lambda: {"events": []})
     step_results = []
     for start in range(0, total_sentences, step_size):
@@ -49,10 +73,14 @@ def segment_events_by_topic_with_sliding_window(dialogues, api_key, base_url, mo
                 event.pop("sentence_ids", None)
 
         history_formatted = json.dumps(event_pool_copy, ensure_ascii=False, indent=2)
-        
+
         # 格式化说话人和时间戳信息
-        speaker_timestamps_json = json.dumps(speaker_timestamps, ensure_ascii=False, indent=2) if speaker_timestamps else "{}"
-        
+        speaker_timestamps_json = (
+            json.dumps(speaker_timestamps, ensure_ascii=False, indent=2)
+            if speaker_timestamps
+            else "{}"
+        )
+
         system_prompt = """
 你是一名高级情绪事件分析助手。你的任务是：
 1. **分析对话数据**，识别出 **关键情绪事件**（event）。
@@ -235,7 +263,10 @@ def segment_events_by_topic_with_sliding_window(dialogues, api_key, base_url, mo
         parsed_response = None
         for _ in range(3):
             response = call_large_model(
-                messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
                 api_key=api_key,
                 base_url=base_url,
                 model=model_name,
@@ -250,9 +281,16 @@ def segment_events_by_topic_with_sliding_window(dialogues, api_key, base_url, mo
                 event_pool[holder] = {"events": []}
             try:
                 for new_event in holder_data["events"]:
-                    new_event["sentence_ids"] = [start + idx for idx in new_event.get("sentence_ids", [])]
+                    new_event["sentence_ids"] = [
+                        start + idx for idx in new_event.get("sentence_ids", [])
+                    ]
                     existing_event = next(
-                        (e for e in event_pool[holder]["events"] if e["event"] == new_event["event"]), None
+                        (
+                            e
+                            for e in event_pool[holder]["events"]
+                            if e["event"] == new_event["event"]
+                        ),
+                        None,
                     )
                     if existing_event:
                         existing_event["emotions"].extend(new_event["emotions"])
@@ -266,12 +304,16 @@ def segment_events_by_topic_with_sliding_window(dialogues, api_key, base_url, mo
             for event in holder_data["events"]:
                 event["sentence_ids"] = list(set(event["sentence_ids"]))
                 event["sentences"] = [
-                    dialogues[idx]["input_sentence"] for idx in event["sentence_ids"] if idx < len(dialogues)
+                    dialogues[idx]["input_sentence"]
+                    for idx in event["sentence_ids"]
+                    if idx < len(dialogues)
                 ]
         step_results.append({"step": start // step_size + 1, "events": parsed_response})
     for holder, holder_data in event_pool.items():
         for event in holder_data["events"]:
-            optimized_emotions = merge_similar_emotions_with_llm(event["emotions"], api_key, base_url, model_name)
+            optimized_emotions = merge_similar_emotions_with_llm(
+                event["emotions"], api_key, base_url, model_name
+            )
             event["emotions"] = optimized_emotions
 
     return event_pool, step_results
@@ -280,13 +322,25 @@ def segment_events_by_topic_with_sliding_window(dialogues, api_key, base_url, mo
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_dir", type=str, required=True)
-    parser.add_argument("--other_text",type=str,required=True,help="timestamps and speaker info")
+    parser.add_argument(
+        "--other_text", type=str, required=True, help="timestamps and speaker info"
+    )
     parser.add_argument("--output_dir", type=str, default="outputs")
     parser.add_argument("--config_path", type=str, default="config.yaml")
     parser.add_argument("--llm_model", type=str, required=True)
     parser.add_argument("--batch", type=int, default=1)
-    parser.add_argument("--window_sizes", type=str, default="20", help="滑动窗口大小，多个用逗号分隔，比如 '10,40'")
-    parser.add_argument("--step_sizes", type=str, default="10", help="滑动步长，多个用逗号分隔，比如 '8,30'")
+    parser.add_argument(
+        "--window_sizes",
+        type=str,
+        default="20",
+        help="滑动窗口大小，多个用逗号分隔，比如 '10,40'",
+    )
+    parser.add_argument(
+        "--step_sizes",
+        type=str,
+        default="10",
+        help="滑动步长，多个用逗号分隔，比如 '8,30'",
+    )
     args = parser.parse_args()
     window_sizes = list(map(int, args.window_sizes.split(",")))
     step_sizes = list(map(int, args.step_sizes.split(",")))
@@ -297,16 +351,27 @@ def main():
 
     llm_cfg = load_yaml_config(args.config_path, args.llm_model, "llm_config")
     os.makedirs(args.output_dir, exist_ok=True)
-    all_files = sorted([f for f in os.listdir(args.input_dir) if f.endswith(".json") and f.startswith("output_chat")])
+    all_files = sorted(
+        [
+            f
+            for f in os.listdir(args.input_dir)
+            if f.endswith(".json") and f.startswith("output_chat")
+        ]
+    )
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.batch) as executor:
-        with tqdm(total=len(all_files) * len(window_sizes) * len(step_sizes), desc="Processing files") as pbar:
+        with tqdm(
+            total=len(all_files) * len(window_sizes) * len(step_sizes),
+            desc="Processing files",
+        ) as pbar:
             futures = {}
 
             for fname in all_files:
                 file_path = os.path.join(args.input_dir, fname)
                 # 尝试读取对应的txt文件
-                txt_file_path = os.path.join(args.input_dir, fname.replace('.json', '.txt'))
+                txt_file_path = os.path.join(
+                    args.input_dir, fname.replace(".json", ".txt")
+                )
                 other_text = args.other_text
                 with open(file_path, "r", encoding="utf-8") as f:
                     dialogues = json.load(f)
@@ -317,13 +382,21 @@ def main():
                         number = match.group(1)
                     else:
                         number = "unknown"
-                    event_output_path = os.path.join(args.output_dir, f"output_emotions_{number}_events.json")
-                    step_output_path = os.path.join(args.output_dir, f"other_text_{number}.json")
+                    event_output_path = os.path.join(
+                        args.output_dir, f"output_emotions_{number}_events.json"
+                    )
+                    step_output_path = os.path.join(
+                        args.output_dir, f"other_text_{number}.json"
+                    )
                     event_output_path = os.path.join(args.output_dir)
                     step_output_path = os.path.join(args.output_dir)
-                    if os.path.exists(event_output_path) and os.path.exists(step_output_path):
+                    if os.path.exists(event_output_path) and os.path.exists(
+                        step_output_path
+                    ):
                         pbar.update(1)
-                        print(f"Skipping {fname} with window_size={window_size}, step_size={step_size}")
+                        print(
+                            f"Skipping {fname} with window_size={window_size}, step_size={step_size}"
+                        )
                         continue
 
                     futures[
@@ -335,7 +408,7 @@ def main():
                             llm_cfg["model"],
                             window_size,
                             step_size,  # 传递说话人和时间戳信息
-                            other_text
+                            other_text,
                         )
                     ] = (fname, window_size, step_size)
 
@@ -350,8 +423,12 @@ def main():
                 else:
                     number = "unknown"
 
-                output_file_path = os.path.join(args.output_dir, f"output_emotions_{number}_events.json")
-                step_results_path = os.path.join(args.output_dir, f"output_emotions_{number}_steps.json")
+                output_file_path = os.path.join(
+                    args.output_dir, f"output_emotions_{number}_events.json"
+                )
+                step_results_path = os.path.join(
+                    args.output_dir, f"output_emotions_{number}_steps.json"
+                )
                 print(f"{output_file_path} is saved.")
                 with open(output_file_path, "w", encoding="utf-8") as f:
                     json.dump(event_pool, f, ensure_ascii=False, indent=2)

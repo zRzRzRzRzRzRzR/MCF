@@ -1,10 +1,11 @@
-from openai import OpenAI, AzureOpenAI
 import json
 import re
+
 import faiss
 import numpy as np
 import torch
 import yaml
+from openai import AzureOpenAI, OpenAI
 
 
 def load_yaml_config(config_path, api_name, config_type="llm_config"):
@@ -26,7 +27,11 @@ def load_yaml_config(config_path, api_name, config_type="llm_config"):
     if not api_config:
         raise ValueError(f"not found '{api_name}' configuration")
 
-    return {"model": api_config["model"], "base_url": api_config["base_url"], "api_key": api_config["api_key"]}
+    return {
+        "model": api_config["model"],
+        "base_url": api_config["base_url"],
+        "api_key": api_config["api_key"],
+    }
 
 
 def load_json(file_path):
@@ -45,7 +50,9 @@ def cosine_similarity(a, b):
     return float(np.dot(a, b) / (norm_a * norm_b))
 
 
-def call_large_model(messages, api_key="EMPTY", base_url=None, model=None, version="2024-08-01-preview"):
+def call_large_model(
+    messages, api_key="EMPTY", base_url=None, model=None, version="2024-08-01-preview"
+):
     if "azure" in base_url:
         client = AzureOpenAI(api_key=api_key, base_url=base_url, api_version=version)
     else:
@@ -131,7 +138,9 @@ def parse_json_response(response):
         {"role": "user", "content": f"原始JSON: \n{response_str}\n\n修复后的JSON:"},
     ]
     # FIXME： The incomplete JSON when calling the large model may result in the final output not conforming to the correct format. During validation, it may be necessary to manually add []
-    fixed_json_str = call_large_model(messages, model="Qwen/Qwen2.5-72B-Instruct", base_url="http://localhost:8000/v1")
+    fixed_json_str = call_large_model(
+        messages, model="Qwen/Qwen2.5-72B-Instruct", base_url="http://localhost:8000/v1"
+    )
     try:
         obj_match = re.search(r"```json\s*\n([\s\S]*?)\n```", fixed_json_str)
         if obj_match:
@@ -227,7 +236,10 @@ def merge_similar_emotions_with_llm(emotions, api_key, base_url, model_name):
 """
 
     response = call_large_model(
-        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
         api_key=api_key,
         base_url=base_url,
         model=model_name,

@@ -1,22 +1,27 @@
 import os
 import sys
 import tempfile
+
 from config import Config
+from error_detector import ErrorDetector
 from glm_client import GLMClient
 from text_processor import TextProcessor
-from error_detector import ErrorDetector
+
 
 def test_config():
     print("🔧 Testing configuration load...")
     try:
         api_key = Config.GLM_API_KEY
         base_url = Config.GLM_BASE_URL
-        print(f"✅ API key: {api_key[:8]}...{api_key[-4:] if len(api_key) > 12 else api_key}")
+        print(
+            f"✅ API key: {api_key[:8]}...{api_key[-4:] if len(api_key) > 12 else api_key}"
+        )
         print(f"✅ API base URL: {base_url}")
         return True
     except Exception as e:
         print(f"❌ Configuration load failed: {e}")
         return False
+
 
 def test_glm_client():
     print("\n🤖 Testing GLM client (batch mode)...")
@@ -26,14 +31,16 @@ def test_glm_client():
         test_texts = [
             "这是一个测试文本，没有错误。",
             "我觉的这个方案不错。",
-            "在说一遍好吗？"
+            "在说一遍好吗？",
         ]
 
         print("Testing batch processing...")
         results = client.batch_detect_and_correct_texts(test_texts)
 
         if len(results) != len(test_texts):
-            print(f"❌ Result count mismatch: expected {len(test_texts)}, got {len(results)}")
+            print(
+                f"❌ Result count mismatch: expected {len(test_texts)}, got {len(results)}"
+            )
             return False
 
         api_calls = 0
@@ -41,27 +48,32 @@ def test_glm_client():
         skipped = 0
 
         for i, result in enumerate(results):
-            if 'error' in result:
-                print(f"❌ Text {i+1} failed: {result['error']}")
+            if "error" in result:
+                print(f"❌ Text {i + 1} failed: {result['error']}")
                 return False
             else:
-                print(f"✅ Text {i+1}: {result.get('method', 'unknown')} - {result.get('has_errors', False)}")
+                print(
+                    f"✅ Text {i + 1}: {result.get('method', 'unknown')} - {result.get('has_errors', False)}"
+                )
 
-                method = result.get('method', '')
-                if method in ['batch_api']:
+                method = result.get("method", "")
+                if method in ["batch_api"]:
                     api_calls += 1
-                elif method == 'quick_fix':
+                elif method == "quick_fix":
                     quick_fixes += 1
                 else:
                     skipped += 1
 
-        print(f"Stats: API batch {api_calls}, quick fixes {quick_fixes}, skipped {skipped}")
+        print(
+            f"Stats: API batch {api_calls}, quick fixes {quick_fixes}, skipped {skipped}"
+        )
         print("✅ Batch processing works")
         return True
 
     except Exception as e:
         print(f"❌ GLM client test failed: {e}")
         return False
+
 
 def test_text_processor():
     print("\n📝 Testing text processor...")
@@ -78,7 +90,9 @@ def test_text_processor():
 好的，那我们在会议上讨论一下吧。
 """
 
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt', encoding='utf-8') as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, suffix=".txt", encoding="utf-8"
+        ) as f:
             f.write(test_content)
             test_file = f.name
 
@@ -86,7 +100,9 @@ def test_text_processor():
 
         print(f"✅ Parsed {len(segments)} segments")
         for i, segment in enumerate(segments[:3]):
-            print(f"   Segment {i+1}: {segment['speaker']} ({segment['timestamp']}) - {segment['text'][:30]}...")
+            print(
+                f"   Segment {i + 1}: {segment['speaker']} ({segment['timestamp']}) - {segment['text'][:30]}..."
+            )
 
         os.unlink(test_file)
         return True
@@ -94,6 +110,7 @@ def test_text_processor():
     except Exception as e:
         print(f"❌ Text processor test failed: {e}")
         return False
+
 
 def test_error_detector():
     print("\n🔍 Testing error detector (batch mode)...")
@@ -110,7 +127,9 @@ def test_error_detector():
 在说一遍这个观点，我觉的我们需要在努力一点。
 """
 
-        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt', encoding='utf-8') as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, suffix=".txt", encoding="utf-8"
+        ) as f:
             f.write(test_content)
             test_file = f.name
 
@@ -122,9 +141,9 @@ def test_error_detector():
             print(f"   Report file: {os.path.basename(report_path)}")
             print(f"   Corrected file: {os.path.basename(corrected_path)}")
 
-            with open(report_path, 'r', encoding='utf-8') as f:
+            with open(report_path, "r", encoding="utf-8") as f:
                 report_content = f.read()
-                if '批量API处理' in report_content or '快速修正' in report_content:
+                if "批量API处理" in report_content or "快速修正" in report_content:
                     print("✅ Batch processing functioning correctly")
                 else:
                     print("⚠️  Batch processing may not be functioning correctly")
@@ -139,6 +158,7 @@ def test_error_detector():
         print(f"❌ Error detector test failed: {e}")
         return False
 
+
 def test_file_formats():
     print("\n📄 Testing support for different file formats...")
     processor = TextProcessor()
@@ -149,18 +169,18 @@ def test_file_formats():
 
 发言人2 05:13
 这是另一段内容""",
-
         "时间戳+内容": """[00:04:49] 这是测试内容
 [00:05:13] 这是另一段内容""",
-
         "时间戳+发言人+内容": """[00:04:49-00:05:13] 张三: 这是测试内容
-[00:05:13-00:05:30] 李四: 这是另一段内容"""
+[00:05:13-00:05:30] 李四: 这是另一段内容""",
     }
 
     all_passed = True
     for format_name, content in formats.items():
         try:
-            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt', encoding='utf-8') as f:
+            with tempfile.NamedTemporaryFile(
+                mode="w", delete=False, suffix=".txt", encoding="utf-8"
+            ) as f:
                 f.write(content)
                 test_file = f.name
 
@@ -180,6 +200,7 @@ def test_file_formats():
 
     return all_passed
 
+
 def test_batch_optimization():
     print("\n🚀 Testing batch optimization...")
     try:
@@ -192,6 +213,7 @@ def test_batch_optimization():
         print(f"   Testing batch processing of {len(test_texts)} text segments...")
 
         import time
+
         start_time = time.time()
         results = client.batch_detect_and_correct_texts(test_texts, batch_size=5)
         end_time = time.time()
@@ -201,18 +223,20 @@ def test_batch_optimization():
         if len(results) == len(test_texts):
             methods = {}
             for result in results:
-                method = result.get('method', 'unknown')
+                method = result.get("method", "unknown")
                 methods[method] = methods.get(method, 0) + 1
 
             print(f"✅ Batch processing succeeded")
             print(f"   Processing time: {processing_time:.2f}s")
-            print(f"   Avg per segment: {processing_time/len(test_texts):.3f}s")
+            print(f"   Avg per segment: {processing_time / len(test_texts):.3f}s")
             print(f"   Methods distribution: {methods}")
 
-            if 'batch_api' in methods:
+            if "batch_api" in methods:
                 print("✅ Batch API processing effective")
             else:
-                print("⚠️  Batch API processing may not be effective; other methods used")
+                print(
+                    "⚠️  Batch API processing may not be effective; other methods used"
+                )
 
             return True
         else:
@@ -223,6 +247,7 @@ def test_batch_optimization():
         print(f"❌ Batch optimization test failed: {e}")
         return False
 
+
 def main():
     print("🚀 Starting system tests (batch-optimized)...\n")
 
@@ -232,7 +257,7 @@ def main():
         ("Text processor", test_text_processor),
         ("File format support", test_file_formats),
         ("Error detector (batch)", test_error_detector),
-        ("Batch optimization", test_batch_optimization)
+        ("Batch optimization", test_batch_optimization),
     ]
 
     passed = 0
@@ -251,11 +276,14 @@ def main():
 
     if passed == total:
         print("🎉 All tests passed! Batch-optimized system is working.")
-        print("💡 Compared to the original, the new system should significantly reduce token usage and processing time.")
+        print(
+            "💡 Compared to the original, the new system should significantly reduce token usage and processing time."
+        )
         return True
     else:
         print("⚠️  Some tests failed, please check configuration and network.")
         return False
+
 
 if __name__ == "__main__":
     success = main()

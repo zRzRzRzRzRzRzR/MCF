@@ -147,15 +147,15 @@ python get_emo_sw.py --input_dir --other_text {combined_text} --output_dir --con
 
 # Evaluation Metrics for Multimodal Emotional Causal Reasoning
 
-### Emotion State Accuracy (SA)
+## Emotion State Accuracy (SA)
 
 SA measures whether the predicted emotional state matches the ground-truth emotional state for each matched causal chain
 pair **(c<sub>i</sub><sup>gt</sup>, ĉ<sub>j</sub>)**.
 
-- **c<sub>i</sub><sup>gt</sup> = (s<sub>p</sub><sup>gt</sup>, u<sub>q</sub><sup>gt</sup>, e<sub>q</sub><sup>gt</sup>)**
++ **c<sub>i</sub><sup>gt</sup> = (s<sub>p</sub><sup>gt</sup>, u<sub>q</sub><sup>gt</sup>, e<sub>q</sub><sup>gt</sup>)**
   be the ground-truth chain,
-- **ĉ<sub>j</sub> = (ŝ<sub>p</sub>, û<sub>q</sub>, ê<sub>q</sub>)** be a predicted chain,
-- **ê<sub>q</sub><sup>*</sup>** be the emotional state from the **best-matching** predicted chain:
++ **ĉ<sub>j</sub> = (ŝ<sub>p</sub>, û<sub>q</sub>, ê<sub>q</sub>)** be a predicted chain,
++ **ê<sub>q</sub><sup>*</sup>** be the emotional state from the **best-matching** predicted chain:
 
 ![SA_match](https://latex.codecogs.com/svg.latex?\hat{e}_q^{*}=\arg\max_{\hat{c}_j}\mathrm{Similarity}(c_i^{gt},\hat{c}_j))
 
@@ -170,9 +170,9 @@ where **N** is the number of matched pairs and **𝕀(·)** is the indicator fun
 **Definition.** SIA checks whether the **source event position** in the best-matching predicted chain aligns with the
 ground-truth source event position.
 
-- **POS(s<sub>p</sub><sup>gt</sup>)** = set of valid position indices for the ground-truth source event
-- **pos(·)** = extract the utterance index from a source event
-- **ŝ<sub>p</sub><sup>*</sup>** = source event from the best-matching predicted chain (as defined via the same matching
++ **POS(s<sub>p</sub><sup>gt</sup>)** = set of valid position indices for the ground-truth source event
++ **pos(·)** = extract the utterance index from a source event
++ **ŝ<sub>p</sub><sup>*</sup>** = source event from the best-matching predicted chain (as defined via the same matching
   used for SA)
 
 Then:

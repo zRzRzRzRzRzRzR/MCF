@@ -52,14 +52,19 @@ async def judge_similarity_with_llm(text_a, text_b, judge_config):
     client = OpenAI(api_key=judge_config["api_key"], base_url=judge_config["base_url"])
 
     response = await asyncio.to_thread(
-        client.chat.completions.create, model=judge_config["model"], messages=messages, temperature=0.0
+        client.chat.completions.create,
+        model=judge_config["model"],
+        messages=messages,
+        temperature=0.0,
     )
     content = response.choices[0].message.content.strip()
     val = int(content)
     return 1 if val == 1 else 0
 
 
-async def match_event(gt_event_text, pred_events, embed_config, judge_config, event_threshold=0.3):
+async def match_event(
+    gt_event_text, pred_events, embed_config, judge_config, event_threshold=0.3
+):
     """
     Calculate and match event similarity, and return the most similar event along with its similarity score.
     1. Determine the number of events and split the weight based on the quantity.
@@ -87,7 +92,9 @@ async def match_event(gt_event_text, pred_events, embed_config, judge_config, ev
 
     llm_sim = 0
     if best_event is not None:
-        llm_sim = await judge_similarity_with_llm(gt_event_text, best_event["event"], judge_config)
+        llm_sim = await judge_similarity_with_llm(
+            gt_event_text, best_event["event"], judge_config
+        )
 
     if best_sim < event_threshold and llm_sim < event_threshold:
         return None, 0.0, 0.0
@@ -150,7 +157,9 @@ async def match_emotion(gt_emotion, pred_emotions, embed_config, judge_config):
 
     if best_pair:
         matched_idx, best_pred_emo = best_pair
-        llm_reason_sim = await judge_similarity_with_llm(gt_reason, best_pred_emo["reason"], judge_config)
+        llm_reason_sim = await judge_similarity_with_llm(
+            gt_reason, best_pred_emo["reason"], judge_config
+        )
 
         # FIXME: llm_reason only has two cases, 0 and 1. This can be optimized in the future by adding embedding computation.
         if llm_reason_sim > 0:
@@ -171,13 +180,17 @@ async def match_emotion(gt_emotion, pred_emotions, embed_config, judge_config):
         else:
             gt_source_ids = {int(gt_source_id)}
         try:
-            emo_res["source_id_score"] = 1 if best_pred_emo["source_id"] in gt_source_ids else 0
+            emo_res["source_id_score"] = (
+                1 if best_pred_emo["source_id"] in gt_source_ids else 0
+            )
         except:
             emo_res["source_id_score"] = 0
     return emo_res, matched_idx
 
 
-async def evaluate_chain(gt_data, pred_data, embed_config, judge_config, event_threshold=0.7):
+async def evaluate_chain(
+    gt_data, pred_data, embed_config, judge_config, event_threshold=0.7
+):
     details = {}
     total_state_score = 0.0
     total_source_id_score = 0.0
@@ -219,19 +232,32 @@ async def evaluate_chain(gt_data, pred_data, embed_config, judge_config, event_t
             if best_pred_event:
                 for gt_em in gt_ev.get("emotions", []):
                     emo_res, _ = await match_emotion(
-                        gt_em, best_pred_event.get("emotions", []), embed_config, judge_config
+                        gt_em,
+                        best_pred_event.get("emotions", []),
+                        embed_config,
+                        judge_config,
                     )
                     emo_matches.append(emo_res)
 
-                    total_role_state_score += emo_res["state_score"] / num_emotions / num_gt_events
-                    total_role_source_id_score += emo_res["source_id_score"] / num_emotions / num_gt_events
-                    total_role_reason_llm_score += emo_res["reason_llm_score"] / num_emotions / num_gt_events
-                    total_role_reason_embed_score += emo_res["reason_embed_score"] / num_emotions / num_gt_events
+                    total_role_state_score += (
+                        emo_res["state_score"] / num_emotions / num_gt_events
+                    )
+                    total_role_source_id_score += (
+                        emo_res["source_id_score"] / num_emotions / num_gt_events
+                    )
+                    total_role_reason_llm_score += (
+                        emo_res["reason_llm_score"] / num_emotions / num_gt_events
+                    )
+                    total_role_reason_embed_score += (
+                        emo_res["reason_embed_score"] / num_emotions / num_gt_events
+                    )
 
             event_details.append(
                 {
                     "gt_event": gt_event_text,
-                    "pred_event_matched": best_pred_event["event"] if best_pred_event else None,
+                    "pred_event_matched": best_pred_event["event"]
+                    if best_pred_event
+                    else None,
                     "event_similarity": event_sim,
                     "event_score": event_score,
                     "llm_event_score": llm_event_score,
@@ -251,16 +277,24 @@ async def evaluate_chain(gt_data, pred_data, embed_config, judge_config, event_t
         total_possible_score += total_role_possible_score
 
     total_reason_embed_score_percentage = (
-        round((total_reason_mbed_score / total_possible_score) * 100, 2) if total_possible_score > 0 else 0.0
+        round((total_reason_mbed_score / total_possible_score) * 100, 2)
+        if total_possible_score > 0
+        else 0.0
     )
     total_state_score_percentage = (
-        round((total_state_score / total_possible_score) * 100, 2) if total_possible_score > 0 else 0.0
+        round((total_state_score / total_possible_score) * 100, 2)
+        if total_possible_score > 0
+        else 0.0
     )
     total_reason_llm_score_percentage = (
-        round((total_reason_llm_score / total_possible_score) * 100, 2) if total_possible_score > 0 else 0.0
+        round((total_reason_llm_score / total_possible_score) * 100, 2)
+        if total_possible_score > 0
+        else 0.0
     )
     total_source_id_score_percentage = (
-        round((total_source_id_score / total_possible_score) * 100, 2) if total_possible_score > 0 else 0.0
+        round((total_source_id_score / total_possible_score) * 100, 2)
+        if total_possible_score > 0
+        else 0.0
     )
 
     return {
@@ -281,25 +315,57 @@ async def evaluate_chain(gt_data, pred_data, embed_config, judge_config, event_t
 
 async def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--gt_dir", type=str, required=True, help="GT folder (contains emo_event_x.json)")
     parser.add_argument(
-        "--input_dir", type=str, required=True, help="Prediction folder (contains output_emotions_x.json)"
+        "--gt_dir",
+        type=str,
+        required=True,
+        help="GT folder (contains emo_event_x.json)",
     )
     parser.add_argument(
-        "--output_dir", type=str, default="evaluation_results", help="Output folder for evaluation results"
+        "--input_dir",
+        type=str,
+        required=True,
+        help="Prediction folder (contains output_emotions_x.json)",
     )
-    parser.add_argument("--config_path", type=str, default="config.yaml", help="Path to the YAML configuration file")
     parser.add_argument(
-        "--embedding_model", type=str, default="zhipu", help="Embedding model name (corresponds to config.yaml)"
+        "--output_dir",
+        type=str,
+        default="evaluation_results",
+        help="Output folder for evaluation results",
     )
-    parser.add_argument("--llm_model", type=str, default="zhipu", help="LLM model name (corresponds to config.yaml)")
-    parser.add_argument("--batch", type=int, default=4, help="Maximum number of concurrent processes")
-    parser.add_argument("--event_threshold", type=float, default=0.3, help="Event matching threshold")
+    parser.add_argument(
+        "--config_path",
+        type=str,
+        default="config.yaml",
+        help="Path to the YAML configuration file",
+    )
+    parser.add_argument(
+        "--embedding_model",
+        type=str,
+        default="zhipu",
+        help="Embedding model name (corresponds to config.yaml)",
+    )
+    parser.add_argument(
+        "--llm_model",
+        type=str,
+        default="zhipu",
+        help="LLM model name (corresponds to config.yaml)",
+    )
+    parser.add_argument(
+        "--batch", type=int, default=4, help="Maximum number of concurrent processes"
+    )
+    parser.add_argument(
+        "--event_threshold", type=float, default=0.3, help="Event matching threshold"
+    )
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
-    embed_config = load_yaml_config(args.config_path, args.embedding_model, config_type="embed_config")
-    judge_config = load_yaml_config(args.config_path, args.llm_model, config_type="llm_config")
+    embed_config = load_yaml_config(
+        args.config_path, args.embedding_model, config_type="embed_config"
+    )
+    judge_config = load_yaml_config(
+        args.config_path, args.llm_model, config_type="llm_config"
+    )
 
     file_pairs = []
     for f in os.listdir(args.input_dir):
@@ -335,22 +401,34 @@ async def main():
 
             total_score = result["total_score"]
             all_state_percentages.append(total_score["total_state_score_percentage"])
-            all_source_id_percentages.append(total_score["total_source_id_score_percentage"])
-            all_reason_llm_percentages.append(total_score["total_reason_llm_score_percentage"])
-            all_reason_embed_percentages.append(total_score["total_reason_embed_score_percentage"])
+            all_source_id_percentages.append(
+                total_score["total_source_id_score_percentage"]
+            )
+            all_reason_llm_percentages.append(
+                total_score["total_reason_llm_score_percentage"]
+            )
+            all_reason_embed_percentages.append(
+                total_score["total_reason_embed_score_percentage"]
+            )
 
             pbar.update(1)
             return result
 
     with tqdm(total=len(file_pairs), desc="Evaluating") as pbar:
-        tasks = [asyncio.create_task(sem_wrapper(g, p, o, pbar)) for g, p, o in file_pairs]
+        tasks = [
+            asyncio.create_task(sem_wrapper(g, p, o, pbar)) for g, p, o in file_pairs
+        ]
         await asyncio.gather(*tasks)
 
     average_state_percentage = (
-        round(sum(all_state_percentages) / len(all_state_percentages), 2) if all_state_percentages else 0.0
+        round(sum(all_state_percentages) / len(all_state_percentages), 2)
+        if all_state_percentages
+        else 0.0
     )
     average_source_id_percentage = (
-        round(sum(all_source_id_percentages) / len(all_source_id_percentages), 2) if all_source_id_percentages else 0.0
+        round(sum(all_source_id_percentages) / len(all_source_id_percentages), 2)
+        if all_source_id_percentages
+        else 0.0
     )
     average_reason_llm_percentage = (
         round(sum(all_reason_llm_percentages) / len(all_reason_llm_percentages), 2)
@@ -380,11 +458,15 @@ async def main():
                 "total_state_score_percentage": all_state_percentages[idx],
                 "total_source_id_score_percentage": all_source_id_percentages[idx],
                 "total_reason_llm_score_percentage": all_reason_llm_percentages[idx],
-                "total_reason_embed_score_percentage": all_reason_embed_percentages[idx],
+                "total_reason_embed_score_percentage": all_reason_embed_percentages[
+                    idx
+                ],
             }
         )
 
-    with open(os.path.join(args.output_dir, "summary.json"), "w", encoding="utf-8") as f:
+    with open(
+        os.path.join(args.output_dir, "summary.json"), "w", encoding="utf-8"
+    ) as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 
     print("[INFO] Summary has been saved to summary.json.")

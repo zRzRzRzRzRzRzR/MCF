@@ -1,29 +1,31 @@
-import requests
 import json
 import time
+
+import requests
 from config import Config
+
 
 def test_basic_api_call():
     print("🔍 Testing basic API call...")
 
     headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {Config.GLM_API_KEY}'
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {Config.GLM_API_KEY}",
     }
 
     payload = {
         "model": "glm-4.5",
         "messages": [{"role": "user", "content": "你好"}],
         "max_tokens": 50,
-        "temperature": 0.1
+        "temperature": 0.1,
     }
 
     try:
         response = requests.post(
-            f'{Config.GLM_BASE_URL}chat/completions',
+            f"{Config.GLM_BASE_URL}chat/completions",
             headers=headers,
             json=payload,
-            timeout=10
+            timeout=10,
         )
 
         print(f"Status code: {response.status_code}")
@@ -34,7 +36,9 @@ def test_basic_api_call():
         if response.status_code == 200:
             try:
                 response_json = response.json()
-                print(f"JSON structure: {json.dumps(response_json, ensure_ascii=False, indent=2)[:500]}")
+                print(
+                    f"JSON structure: {json.dumps(response_json, ensure_ascii=False, indent=2)[:500]}"
+                )
                 return True
             except json.JSONDecodeError as e:
                 print(f"❌ JSON parse failed: {e}")
@@ -47,14 +51,15 @@ def test_basic_api_call():
         print(f"❌ Request exception: {e}")
         return False
 
+
 def test_different_models():
     print("\n🔍 Testing different models...")
 
     models = ["glm-4.5", "glm-4", "glm-4-0520", "glm-4-plus"]
 
     headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {Config.GLM_API_KEY}'
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {Config.GLM_API_KEY}",
     }
 
     for model in models:
@@ -64,15 +69,15 @@ def test_different_models():
             "model": model,
             "messages": [{"role": "user", "content": "你好"}],
             "max_tokens": 20,
-            "temperature": 0.1
+            "temperature": 0.1,
         }
 
         try:
             response = requests.post(
-                f'{Config.GLM_BASE_URL}chat/completions',
+                f"{Config.GLM_BASE_URL}chat/completions",
                 headers=headers,
                 json=payload,
-                timeout=10
+                timeout=10,
             )
 
             print(f"  Status code: {response.status_code}")
@@ -89,13 +94,14 @@ def test_different_models():
 
     return None
 
+
 def test_content_filtering():
     """Test potential content filtering behavior"""
     print("\n🔍 Testing content filtering...")
 
     headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {Config.GLM_API_KEY}'
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {Config.GLM_API_KEY}",
     }
 
     test_contents = [
@@ -107,24 +113,26 @@ def test_content_filtering():
     ]
 
     for i, content in enumerate(test_contents):
-        print(f"\nTest item {i+1}: {content}")
+        print(f"\nTest item {i + 1}: {content}")
 
         payload = {
             "model": "glm-4.5",
             "messages": [{"role": "user", "content": content}],
             "max_tokens": 50,
-            "temperature": 0.1
+            "temperature": 0.1,
         }
 
         try:
             response = requests.post(
-                f'{Config.GLM_BASE_URL}chat/completions',
+                f"{Config.GLM_BASE_URL}chat/completions",
                 headers=headers,
                 json=payload,
-                timeout=10
+                timeout=10,
             )
 
-            print(f"  Status code: {response.status_code}, length: {len(response.text)}")
+            print(
+                f"  Status code: {response.status_code}, length: {len(response.text)}"
+            )
 
             if len(response.text) > 0:
                 print("  ✅ Response OK")
@@ -134,35 +142,38 @@ def test_content_filtering():
         except Exception as e:
             print(f"  ❌ Request failed: {e}")
 
+
 def test_api_quota():
     """Test API quota and rate limiting"""
     print("\n🔍 Testing API quota...")
 
     headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {Config.GLM_API_KEY}'
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {Config.GLM_API_KEY}",
     }
 
     payload = {
         "model": "glm-4.5",
         "messages": [{"role": "user", "content": "测试"}],
         "max_tokens": 10,
-        "temperature": 0.1
+        "temperature": 0.1,
     }
 
     # Burst requests
     for i in range(5):
-        print(f"  Burst request {i+1}/5...")
+        print(f"  Burst request {i + 1}/5...")
 
         try:
             response = requests.post(
-                f'{Config.GLM_BASE_URL}chat/completions',
+                f"{Config.GLM_BASE_URL}chat/completions",
                 headers=headers,
                 json=payload,
-                timeout=10
+                timeout=10,
             )
 
-            print(f"    Status code: {response.status_code}, length: {len(response.text)}")
+            print(
+                f"    Status code: {response.status_code}, length: {len(response.text)}"
+            )
 
             if response.status_code == 429:
                 print("    ⚠️ Rate limit triggered")
@@ -176,28 +187,29 @@ def test_api_quota():
 
         time.sleep(0.5)
 
+
 def test_auth_and_key():
     """Test auth and API key behavior"""
     print("\n🔍 Testing authentication...")
 
     # Test invalid key
     invalid_headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer invalid_key_test'
+        "Content-Type": "application/json",
+        "Authorization": "Bearer invalid_key_test",
     }
 
     payload = {
         "model": "glm-4.5",
         "messages": [{"role": "user", "content": "你好"}],
-        "max_tokens": 10
+        "max_tokens": 10,
     }
 
     try:
         response = requests.post(
-            f'{Config.GLM_BASE_URL}chat/completions',
+            f"{Config.GLM_BASE_URL}chat/completions",
             headers=invalid_headers,
             json=payload,
-            timeout=10
+            timeout=10,
         )
 
         print(f"Invalid key test - status code: {response.status_code}")
@@ -212,21 +224,18 @@ def test_auth_and_key():
     print(f"Key prefix: {Config.GLM_API_KEY[:10]}...")
     print(f"Key suffix: ...{Config.GLM_API_KEY[-10:]}")
 
+
 def test_simplified_correction():
     """Test simplified correction prompts"""
     print("\n🔍 Testing simplified correction...")
 
     headers = {
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {Config.GLM_API_KEY}'
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {Config.GLM_API_KEY}",
     }
 
     # Minimal correction prompts
-    simple_prompts = [
-        "修正：我觉的很好",
-        "纠错：在说一遍",
-        "检查：因该好好学习"
-    ]
+    simple_prompts = ["修正：我觉的很好", "纠错：在说一遍", "检查：因该好好学习"]
 
     for prompt in simple_prompts:
         print(f"\nTest prompt: {prompt}")
@@ -235,15 +244,15 @@ def test_simplified_correction():
             "model": "glm-4.5",
             "messages": [{"role": "user", "content": prompt}],
             "max_tokens": 30,
-            "temperature": 0.1
+            "temperature": 0.1,
         }
 
         try:
             response = requests.post(
-                f'{Config.GLM_BASE_URL}chat/completions',
+                f"{Config.GLM_BASE_URL}chat/completions",
                 headers=headers,
                 json=payload,
-                timeout=15
+                timeout=15,
             )
 
             print(f"  Status code: {response.status_code}")
@@ -252,8 +261,8 @@ def test_simplified_correction():
             if len(response.text) > 0:
                 try:
                     response_json = response.json()
-                    if 'choices' in response_json and response_json['choices']:
-                        content = response_json['choices'][0]['message']['content']
+                    if "choices" in response_json and response_json["choices"]:
+                        content = response_json["choices"][0]["message"]["content"]
                         print(f"  ✅ Response: {content}")
                     else:
                         print("  ❌ Unexpected response format")
@@ -264,6 +273,7 @@ def test_simplified_correction():
 
         except Exception as e:
             print(f"  ❌ Request exception: {e}")
+
 
 def main():
     """Main diagnostic flow"""
@@ -281,13 +291,13 @@ def main():
         ("Content filtering test", test_content_filtering),
         ("API quota test", test_api_quota),
         ("Auth test", test_auth_and_key),
-        ("Simplified correction test", test_simplified_correction)
+        ("Simplified correction test", test_simplified_correction),
     ]
 
     results = {}
 
     for test_name, test_func in tests:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         try:
             result = test_func()
             results[test_name] = result
@@ -298,7 +308,7 @@ def main():
         time.sleep(2)  # Avoid too frequent requests
 
     # Summary of diagnostic results
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("📊 Diagnostic summary")
     print("=" * 60)
 
@@ -320,6 +330,7 @@ def main():
 
     if not results.get("API quota test", False):
         print("- Possible rate limiting. Increase delay between requests.")
+
 
 if __name__ == "__main__":
     main()
