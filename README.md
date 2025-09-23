@@ -139,7 +139,7 @@ bert_model = "/gpfs/work/aac/yulongli19/.cache/modelscope/hub/models/AI-ModelSco
   python combined.py --audio_dir {audio} --input_dir {video_info} --output_dir {output}
   ```
 
-1. After all feature extraction is done, generate the causal chains:
+After all feature extraction is done, generate the causal chains:
 
 ```shell
 python get_emo_sw.py --input_dir --other_text {combined_text} --output_dir --config_path --llm_model --batch --window_sizes --step_sizes
