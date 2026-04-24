@@ -3,7 +3,6 @@ import json
 import os
 import re
 
-import torch
 from humanomni import mm_infer, model_init
 from humanomni.utils import disable_torch_init
 from transformers import BertTokenizer

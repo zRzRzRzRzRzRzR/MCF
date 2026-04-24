@@ -255,9 +255,9 @@ async def evaluate_chain(
             event_details.append(
                 {
                     "gt_event": gt_event_text,
-                    "pred_event_matched": best_pred_event["event"]
-                    if best_pred_event
-                    else None,
+                    "pred_event_matched": (
+                        best_pred_event["event"] if best_pred_event else None
+                    ),
                     "event_similarity": event_sim,
                     "event_score": event_score,
                     "llm_event_score": llm_event_score,

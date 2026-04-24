@@ -87,7 +87,7 @@ def segment_events_by_topic_with_sliding_window(
 2. **合并相似事件**，避免重复创建多个 event。
 3. **保证情绪演变的连贯性**，记录关键的情绪变化，而不是简单重复相同情绪。
 
-### 数据特点 
+### 数据特点
 1. 这是段对话历史包含多个说话人，语言非常口语化。由于我给你提供的窗口是滑动的二不是完整的历史记录，可能当前句子属于上一个句子的event，而仅仅是一个reason。这种时候你需要合并在一个历史事件中，而不是创建一个新的事件。
 2. 可能存在某个角色连续多次发言的情况。
 3.你需要结合其他的输入进行分析，这些输入将会是文本模态的
@@ -167,7 +167,7 @@ def segment_events_by_topic_with_sliding_window(
     - 只记录**关键的情绪变化**，避免相同情绪重复
     - `state` 选项：`["positive", "negative", "neutral", "ambiguous", "doubt"]`
     - `reason` 需要描述角色情绪变化的依据或原因。这通常是这个事件的进展，或者更换了话题，比如实验中的某个话题。
-    
+
 具体格式如下：
 ```json
 {
@@ -245,7 +245,7 @@ def segment_events_by_topic_with_sliding_window(
 - event, reason 都应该简单，表达清晰。emotions中可以列出详细的情感变化。
 - sentence_ids 不要输出句子，只要对应的()内的句子ID。没有"sentences"字段，不允许输出任何原始的句子!,只能输出"sentences_id"字段，这是针对这个事件的句子ID。
 - 不需要带有任何解释,只能返回要求内的内容。输出格式必须完全和 ### 输出格式要求的一样。 返回的必须是一个dict而不是一个list结构的json，最外层必须是dict。
-    
+
 请直接返回 JSON，不能有多余解释。
 """.strip()
 

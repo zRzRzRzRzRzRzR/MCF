@@ -17,7 +17,7 @@ relationship chains between emotional events).
 ![dataset.png](resources/dataset.png)
 
 The dataset is provided in [MCF-Dataset](https://huggingface.co/datasets/ZHANGYUXUAN-zR/MCF-Dataset)
-with the following structure.  
+with the following structure.
 Each sample includes video, audio, and dialogue subtitles:
 
 ```
