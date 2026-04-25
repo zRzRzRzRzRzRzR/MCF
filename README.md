@@ -1,4 +1,4 @@
-# MCF: Text LLMS For Multimodal Emotional Causality
+# MCF: TEXT LLMS FOR MULTIMODAL EMOTIONAL CAUSALITY
 
 <div align="center">
 
